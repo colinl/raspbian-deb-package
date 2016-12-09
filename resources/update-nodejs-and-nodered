@@ -30,8 +30,13 @@ read -p "Are you really, really sure you want to do this ? " yn
 case $yn in
     [Yy]* )
         # this script assumes that $HOME is the folder of the user that runs node-red
-        # if this is not correct then edit the line below
+        # that $USER is the user name and the group name to use when running is the 
+        # primary group of that user
+        # if this is not correct then edit the lines below
         NODERED_HOME=$HOME
+        NODERED_USER=$USER
+        NODERED_GROUP=`id -gn`
+
         cd "$NODERED_HOME"
         node-red-stop
         sudo apt-get remove -y nodered nodejs nodejs-legacy npm
@@ -81,6 +86,8 @@ case $yn in
         lxpanelctl restart
         # and add the start and stop scripts to systemd
         sudo wget https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/nodered.service -O /lib/systemd/system/nodered.service
+        # set the User Group and WorkingDirectory in nodered.service
+        sudo sed -i 's#^User=pi#User='$NODERED_USER'#;s#^Group=pi#Group='$NODERED_GROUP'#;s#^WorkingDirectory=/home/pi#WorkingDirectory='$NODERED_HOME'#;' /lib/systemd/system/nodered.service
         sudo wget https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/node-red-start2 -O /usr/bin/node-red-start
         sudo wget https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/node-red-stop -O /usr/bin/node-red-stop
         sudo wget https://raw.githubusercontent.com/node-red/raspbian-deb-package/master/resources/node-red-log -O /usr/bin/node-red-log
